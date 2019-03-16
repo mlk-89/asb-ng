@@ -1,8 +1,12 @@
 import commande.system_type as systemTypeCmd
+import scenario as sc
 
-class SystemInfo:
+
+class SystemInfo(sc.Scenario):
+
     def __init__(self):
-        print("Retrieving system information")
+        super().__init__()
+        self.logger.info('Gathering OS info')
 
     def getScenario(self):
         action = []
