@@ -9,7 +9,7 @@ class SystemInfo(sc.Scenario):
         self.logger.info('Gathering OS info')
 
     def getScenario(self):
-        action = []
-        action.append(systemTypeCmd.SystemType().getCmd())
+        action = {}
+        action.update(systemTypeCmd.SystemType().getCmd())
 
         return action

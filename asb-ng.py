@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
-import logging
+import tools.log as lg
 import cli
 
 
 def main():
-    logging.basicConfig(filename='asb-ng.log', level=logging.INFO,
-                        format='%(asctime)s -- %(name)s -- %(levelname)s -- %(message)s')
-    logging.getLogger('MAIN')
-    logging.info("Starting main process")
+
+    mylog = lg.asblog()
+    mylog.config('asb-ng.log')
 
     mycli = cli.Cli()
     mycli.cmdloop()

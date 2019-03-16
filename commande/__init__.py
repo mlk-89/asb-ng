@@ -3,11 +3,9 @@ import logging
 
 class Commande:
 
-    def __init__(self,mycmd=None):
+    def __init__(self):
         self.logger = logging.getLogger('Command')
-
-        if mycmd:
-            self.mycmd = mycmd
+        self.mycmd = {}
 
     def getCmd(self):
         return self.mycmd

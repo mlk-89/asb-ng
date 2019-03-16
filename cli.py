@@ -23,7 +23,9 @@ class Cli(cmd.Cmd):
         myaction = systemInfoScenario.SystemInfo().getScenario()
         rem = remoteControl.RemoteControl()
         rem.connect('192.168.122.89','root','totolitoto')
-        rem.launchCmd(myaction)
+        res = rem.launchCmd(myaction)
+
+        print(''.join(res['os']))
         rem.disconnect()
 
     def do_quit(self, args):
