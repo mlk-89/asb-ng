@@ -2,8 +2,6 @@ import cmd
 import os
 import glob
 import yaml
-import scenario.system_info as systemInfoScenario
-import tools.remote_control as remoteControl
 import servercli
 import model.server as ms
 
@@ -11,6 +9,7 @@ class Cli(cmd.Cmd):
 
     prompt = '> '
     intro = "Welcome to interactive Building console"
+    serverlist = []
 
     def do_load(self, line):
         self.serverlist = []
@@ -46,7 +45,31 @@ class Cli(cmd.Cmd):
 
     def do_list(self,args):
         for i in self.serverlist:
-            print(i)
+            print(i.description())
+
+    def do_clearlist(self,args):
+        self.serverlist = []
+
+    def do_addlist(self, servername):
+        self.serverlist.append(ms.Server(name=servername))
+
+    def do_removelist(self,servername):
+        for server in self.serverlist:
+            if servername == server.name:
+                self.serverlist.remove(server)
+
+    def complete_removelist(self, text, line, begidx, endidx):
+        completion = []
+        if text:
+            if self.serverlist:
+                for server in self.serverlist:
+                    if text in server.name:
+                        completion.append(server.name)
+        else:
+            if len(self.serverlist) < 20:
+                for server in self.serverlist:
+                    completion.append(server.name)
+        return completion
 
     def do_debug(self,args1):
         print("ok")
@@ -60,17 +83,17 @@ class Cli(cmd.Cmd):
                             ]
         return completion
 
-    def do_getSystem(self,args):
-        myaction = systemInfoScenario.SystemInfo().getScenario()
-        rem = remoteControl.RemoteControl()
-        rem.connect('192.168.122.89','root','totolitoto')
-        res = rem.launchCmd(myaction)
-
-        print(''.join(res['os']))
-        rem.disconnect()
-
     def do_select(self,servername):
-        scli = servercli.ServerCli()
+        selected = []
+        if self.serverlist:
+            for server in self.serverlist:
+                if server.name.startswith(servername):
+                    selected.append(server)
+
+        if not selected:
+            selected.append(ms.Server(name=servername))
+
+        scli = servercli.ServerCli(selected)
         scli.prompt = servername + '> '
         scli.cmdloop()
 
@@ -79,9 +102,13 @@ class Cli(cmd.Cmd):
         if text:
             if self.serverlist:
                 for server in self.serverlist:
-                    for key,value in server:
-                        if key.startswith(text):
-                            completion.append(key)
+                    if text in server.name:
+                        completion.append(server.name)
+        else:
+            if len(self.serverlist) < 20:
+                for server in self.serverlist:
+                    completion.append(server.name)
+
         return completion
 
     def do_EOF(self, line):

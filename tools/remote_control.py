@@ -1,5 +1,6 @@
 import paramiko
 import logging
+from tools import asbexception
 
 class RemoteControl:
     def __init__(self):
@@ -8,8 +9,12 @@ class RemoteControl:
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     def connect(self, address, username, password):
-        self.client.connect(hostname=address,username=username,password=password)
-        self.channel = self.client.invoke_shell()
+        try:
+            self.client.connect(hostname=address,username=username,password=password)
+            self.channel = self.client.invoke_shell()
+        except(Exception):
+            raise asbexception.RemoteConError("Connexion error")
+
 
     def launchCmd(self,mycmd):
         result = {}
