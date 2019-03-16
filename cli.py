@@ -37,7 +37,7 @@ class Cli(cmd.Cmd):
             if path and os.path.isdir(path) and path[-1] != os.sep:
                 pathshow = path + os.sep
                 completions.append(pathshow.replace(fixed, "", 1))
-            elif path.endswith('.json'):
+            elif path.endswith('.yaml'):
                 completions.append(path.replace(fixed, "", 1))
 
         return completions
