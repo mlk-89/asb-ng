@@ -5,20 +5,22 @@ import yaml
 import scenario.system_info as systemInfoScenario
 import tools.remote_control as remoteControl
 import servercli
+import model.server as ms
 
 class Cli(cmd.Cmd):
 
     prompt = '> '
     intro = "Welcome to interactive Building console"
-    serverlist = ""
-
 
     def do_load(self, line):
+        self.serverlist = []
         try:
             with open(line) as json_file:
-                self.serverlist = yaml.load(json_file, Loader=yaml.FullLoader)
+                yserverlist = yaml.load(json_file, Loader=yaml.FullLoader)
 
-            print(self.serverlist)
+                for yserver in yserverlist['server']:
+                    self.serverlist.append(ms.Server(dict=yserver))
+
         except (FileNotFoundError, IOError):
             print('Error on opening file')
 
@@ -41,6 +43,10 @@ class Cli(cmd.Cmd):
                 completions.append(path.replace(fixed, "", 1))
 
         return completions
+
+    def do_list(self,args):
+        for i in self.serverlist:
+            print(i)
 
     def do_debug(self,args1):
         print("ok")
@@ -67,6 +73,16 @@ class Cli(cmd.Cmd):
         scli = servercli.ServerCli()
         scli.prompt = servername + '> '
         scli.cmdloop()
+
+    def complete_select(self, text, line, begidx, endidx):
+        completion = []
+        if text:
+            if self.serverlist:
+                for server in self.serverlist:
+                    for key,value in server:
+                        if key.startswith(text):
+                            completion.append(key)
+        return completion
 
     def do_EOF(self, line):
         return True
