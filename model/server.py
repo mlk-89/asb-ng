@@ -25,6 +25,14 @@ class Server:
                         self._ip = v['ip']
                         self._os = v['os']
 
+    def getdict(self):
+        return {
+            self._name : {
+                'ip': self._ip,
+                'os': self._os
+            }
+        }
+
     @property
     def name(self):
         return self._name
@@ -33,16 +41,24 @@ class Server:
     def ip(self):
         return self._ip
 
+    @ip.setter
+    def ip(self, ip):
+        self._ip = ip
+
     @property
     def os(self):
         return self._os
+
+    @os.setter
+    def os(self, os):
+        self._os = os
 
     @property
     def admin(self):
         return self._admin
 
     def description(self):
-        mystr = "\n" + self._name
+        mystr = "\nservername: " + self._name
 
         if self._ip:
             mystr += "\n\tip: {}".format(self._ip)

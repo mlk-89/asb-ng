@@ -43,6 +43,20 @@ class Cli(cmd.Cmd):
 
         return completions
 
+    def do_save(self, filename):
+        if not filename:
+            filename = 'asb_serverfile.yaml'
+        if self.serverlist:
+            yserver = {'server': []}
+            for server in self.serverlist:
+                yserver['server'].append(server.getdict())
+
+            try:
+                with open(filename, 'w') as outfile:
+                    yaml.dump(yserver, outfile, default_flow_style=False)
+            except (FileNotFoundError, IOError):
+                print('Error on saving file')
+
     def do_list(self,args):
         for i in self.serverlist:
             print(i.description())
@@ -85,10 +99,13 @@ class Cli(cmd.Cmd):
 
     def do_select(self,servername):
         selected = []
-        if self.serverlist:
-            for server in self.serverlist:
-                if server.name.startswith(servername):
-                    selected.append(server)
+
+        if not self.serverlist:
+            self.serverlist.append(ms.Server(name=servername))
+
+        for server in self.serverlist:
+            if server.name.startswith(servername):
+                selected.append(server)
 
         if not selected:
             selected.append(ms.Server(name=servername))
@@ -113,6 +130,9 @@ class Cli(cmd.Cmd):
 
     def do_EOF(self, line):
         return True
+
+    def emptyline(self):
+        pass
 
     def do_quit(self, args):
         """Quits the program."""
