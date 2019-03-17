@@ -4,7 +4,7 @@ import tools.asbexception as ta
 import tools.remote_control as remoteControl
 import tools.dns as td
 import tools.os as to
-import scenario
+import model.allserver as mall
 
 class ServerCli(cmd.Cmd):
 
@@ -21,20 +21,21 @@ class ServerCli(cmd.Cmd):
             print(remoteControl.RemoteControl().launchCompleteCmd(server,myaction))
 
     def do_list(self,args):
-        for i in self.serverlist:
-            print(i.description())
+        print(self.serverlist)
 
     def do_init(self,servername):
         if servername:
-            for server in self.serverlist:
-                if server.name == servername:
-                    if not server.ip:
-                        try:
-                            server.ip = td.DNSmanage().getip(server.name)
-                        except(ta.DNSresolveERROR):
-                            print("Cant resolve " + server.name)
-                    if not server.os:
-                        server.os = to.Os(server).getos()
+
+            try:
+                ip = td.DNSmanage().getip(servername)
+            except(ta.DNSresolveERROR):
+                print("Cant resolve " + servername)
+
+            print()
+            os = to.Os(self.serverlist.getServer(servername)).getos()
+            print(os)
+            self.serverlist.modifyServer(servername=servername, ip=ip, os=os)
+
         else:
             for server in self.serverlist:
                 if not server.ip:
@@ -45,8 +46,6 @@ class ServerCli(cmd.Cmd):
                 if not server.os:
                     server.os = to.Os(server).getos()
 
-    def do_sethostname(self, servername):
-        myaction = scenario.scdebug.ScenarioDebug().getScenario()
 
 
     def do_EOF(self, line):

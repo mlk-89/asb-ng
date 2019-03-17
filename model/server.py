@@ -1,15 +1,18 @@
 class Server:
 
-    def __init__(self, name='',ip='',os='',os_full='', admin='root', dict={}):
+    def __init__(self, name='',ip='',os='',
+                 os_full='', admin='root',
+                 selected=False, mydict={}):
 
         self._name = name
         self._ip = ip
         self._os = os
         self._os_full = os_full
         self._admin = admin
+        self._selected = selected
 
-        if dict:
-            for k,v in dict.items():
+        if mydict:
+            for k,v in mydict.items():
                 self._name = k
                 if v is not None:
                     if 'ip' in v:
@@ -56,6 +59,14 @@ class Server:
     @os.setter
     def os(self, os):
         self._os = os
+
+    @property
+    def selected(self):
+        return self._selected
+
+    @selected.setter
+    def selected(self, selected):
+        self._selected = selected
 
     @property
     def os_full(self):

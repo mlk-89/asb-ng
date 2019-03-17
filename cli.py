@@ -3,6 +3,7 @@ import os
 import glob
 import servercli
 import model.server as ms
+import model.allserver as mall
 import tools.yamlmanage as ty
 
 class Cli(cmd.Cmd):
@@ -11,11 +12,19 @@ class Cli(cmd.Cmd):
     intro = "Welcome to interactive Building console"
     serverlist = []
 
+    def __init__(self):
+        super().__init__()
+        self.servers = mall.AllServer()
+        self.aliases = {'ls': self.do_list
+                         }
+
     def do_load(self, line):
-        self.serverlist = []
+
+        self.servers.clearList()
+
         yserverlist = ty.YamlManage.getyaml(filepath=line)
         for yserver in yserverlist['server']:
-            self.serverlist.append(ms.Server(dict=yserver))
+            self.servers.addServer(mydict=yserver)
 
 
     def complete_load(self, text, line, begidx, endidx):
@@ -40,39 +49,31 @@ class Cli(cmd.Cmd):
     def do_save(self, filename):
         if not filename:
             filename = 'asb_serverfile.yaml'
-        if self.serverlist:
-            yserver = {'server': []}
-            for server in self.serverlist:
-                yserver['server'].append(server.getdict())
 
-            ty.YamlManage.saveyaml(filepath=filename,objecttosave=yserver)
+        if not self.servers.isServerlistEmpty():
+            yserver = {'server': self.servers.getAllServerDict()}
+            ty.YamlManage.saveyaml(filepath=filename, objecttosave=yserver)
 
     def do_list(self,args):
-        for i in self.serverlist:
-            print(i.description())
+        print(self.servers)
 
     def do_clearlist(self,args):
-        self.serverlist = []
+        self.servers.clearList()
 
     def do_addlist(self, servername):
-        self.serverlist.append(ms.Server(name=servername))
+        self.servers.addServer(servername=servername)
 
     def do_removelist(self,servername):
-        for server in self.serverlist:
-            if servername == server.name:
-                self.serverlist.remove(server)
+        self.servers.removeServer(servername)
 
     def complete_removelist(self, text, line, begidx, endidx):
         completion = []
         if text:
-            if self.serverlist:
-                for server in self.serverlist:
-                    if text in server.name:
-                        completion.append(server.name)
+            if not self.servers.isServerlistEmpty():
+                completion = self.servers.getServerStartWithName(text)
         else:
-            if len(self.serverlist) < 20:
-                for server in self.serverlist:
-                    completion.append(server.name)
+            if len(self.servers) < 20:
+                completion = self.servers.getAllServerName(text)
         return completion
 
     def do_debug(self,args1):
@@ -88,33 +89,23 @@ class Cli(cmd.Cmd):
         return completion
 
     def do_select(self,servername):
-        selected = []
+        if self.servers.isServerlistEmpty() or not self.servers.isServerExist(servername):
+            self.servers.addServer(servername)
 
-        if not self.serverlist:
-            self.serverlist.append(ms.Server(name=servername))
+        self.servers.setServerSelectedStartWith(servername)
 
-        for server in self.serverlist:
-            if server.name.startswith(servername):
-                selected.append(server)
-
-        if not selected:
-            selected.append(ms.Server(name=servername))
-
-        scli = servercli.ServerCli(selected)
+        self.servers.sublist = mall.AllServer(self.servers.getServerStartWith(servername))
+        scli = servercli.ServerCli(self.servers.sublist)
         scli.prompt = '(' + servername + ')> '
         scli.cmdloop()
 
     def complete_select(self, text, line, begidx, endidx):
         completion = []
         if text:
-            if self.serverlist:
-                for server in self.serverlist:
-                    if text in server.name:
-                        completion.append(server.name)
+            completion = self.servers.getServerContainsName(text)
         else:
             if len(self.serverlist) < 20:
-                for server in self.serverlist:
-                    completion.append(server.name)
+                completion = self.servers.getAllServerName()
 
         return completion
 
@@ -128,3 +119,10 @@ class Cli(cmd.Cmd):
         """Quits the program."""
         print ("Quitting.")
         raise SystemExit
+
+    def default(self, line):
+        cmd, arg, line = self.parseline(line)
+        if cmd in self.aliases:
+            self.aliases[cmd](arg)
+        else:
+            print("*** Unknown syntax: %s" % line)

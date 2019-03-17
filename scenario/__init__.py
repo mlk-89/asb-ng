@@ -1,5 +1,4 @@
 import logging
-import scenario.scdebug as scdebug
 
 class Scenario:
 
