@@ -24,27 +24,16 @@ class ServerCli(cmd.Cmd):
         print(self.serverlist)
 
     def do_init(self,servername):
+
+        try:
+            ip = td.DNSmanage().getip(servername)
+        except(ta.DNSresolveERROR):
+            print("Cant resolve " + servername)
+
+        os = to.Os(self.serverlist.getServer(servername)).getos()
+
         if servername:
-
-            try:
-                ip = td.DNSmanage().getip(servername)
-            except(ta.DNSresolveERROR):
-                print("Cant resolve " + servername)
-
-            print()
-            os = to.Os(self.serverlist.getServer(servername)).getos()
-            print(os)
             self.serverlist.modifyServer(servername=servername, ip=ip, os=os)
-
-        else:
-            for server in self.serverlist:
-                if not server.ip:
-                    try:
-                        server.ip = td.DNSmanage().getip(server.name)
-                    except(ta.DNSresolveERROR):
-                        print("Cant resolve " + server.name)
-                if not server.os:
-                    server.os = to.Os(server).getos()
 
 
 
