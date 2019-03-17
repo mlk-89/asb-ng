@@ -1,9 +1,9 @@
 import cmd
 import os
 import glob
-import yaml
 import servercli
 import model.server as ms
+import tools.yamlmanage as ty
 
 class Cli(cmd.Cmd):
 
@@ -13,15 +13,9 @@ class Cli(cmd.Cmd):
 
     def do_load(self, line):
         self.serverlist = []
-        try:
-            with open(line) as json_file:
-                yserverlist = yaml.load(json_file, Loader=yaml.FullLoader)
-
-                for yserver in yserverlist['server']:
-                    self.serverlist.append(ms.Server(dict=yserver))
-
-        except (FileNotFoundError, IOError):
-            print('Error on opening file')
+        yserverlist = ty.YamlManage.getyaml(filepath=line)
+        for yserver in yserverlist['server']:
+            self.serverlist.append(ms.Server(dict=yserver))
 
 
     def complete_load(self, text, line, begidx, endidx):
@@ -51,11 +45,7 @@ class Cli(cmd.Cmd):
             for server in self.serverlist:
                 yserver['server'].append(server.getdict())
 
-            try:
-                with open(filename, 'w') as outfile:
-                    yaml.dump(yserver, outfile, default_flow_style=False)
-            except (FileNotFoundError, IOError):
-                print('Error on saving file')
+            ty.YamlManage.saveyaml(filepath=filename,objecttosave=yserver)
 
     def do_list(self,args):
         for i in self.serverlist:
@@ -111,7 +101,7 @@ class Cli(cmd.Cmd):
             selected.append(ms.Server(name=servername))
 
         scli = servercli.ServerCli(selected)
-        scli.prompt = servername + '> '
+        scli.prompt = '(' + servername + ')> '
         scli.cmdloop()
 
     def complete_select(self, text, line, begidx, endidx):

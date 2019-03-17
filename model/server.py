@@ -1,10 +1,11 @@
 class Server:
 
-    def __init__(self, name='',ip='',os='', admin='root', dict={}):
+    def __init__(self, name='',ip='',os='',os_full='', admin='root', dict={}):
 
         self._name = name
         self._ip = ip
         self._os = os
+        self._os_full = os_full
         self._admin = admin
 
         if dict:
@@ -22,14 +23,17 @@ class Server:
                 for k,v in server:
                     if k == name:
                         self._name = k
-                        self._ip = v['ip']
-                        self._os = v['os']
+                        if 'ip' in v:
+                            self._ip = v['ip']
+                        if 'os' in v:
+                            self._os = v['os']
 
     def getdict(self):
         return {
             self._name : {
                 'ip': self._ip,
-                'os': self._os
+                'os': self._os,
+                'os_full': self._os_full
             }
         }
 
@@ -52,6 +56,14 @@ class Server:
     @os.setter
     def os(self, os):
         self._os = os
+
+    @property
+    def os_full(self):
+        return self._os_full
+
+    @os.setter
+    def os_full(self, os_full):
+        self._os = os_full
 
     @property
     def admin(self):
